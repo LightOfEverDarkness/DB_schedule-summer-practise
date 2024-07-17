@@ -2,24 +2,22 @@ import java.sql.*;
 
 public class JDBCRunner {
 
-    private static final String PROTOCOL = "jdbc:postgresql://";        // URL-prefix
-    private static final String DRIVER = "org.postgresql.Driver";       // Driver name
-    private static final String URL_LOCALE_NAME = "localhost/";         // ваш компьютер + порт по умолчанию
+    private static final String PROTOCOL = "jdbc:postgresql://";
+    private static final String DRIVER = "org.postgresql.Driver";
+    private static final String URL_LOCALE_NAME = "localhost/";
 
-    private static final String DATABASE_NAME = "schedule2.0";          // FIXME имя базы
+    private static final String DATABASE_NAME = "schedule2.0";
 
     public static final String DATABASE_URL = PROTOCOL + URL_LOCALE_NAME + DATABASE_NAME;
-    public static final String USER_NAME = "postgres";                  // FIXME имя пользователя
-    public static final String DATABASE_PASS = "postgres";              // FIXME пароль базы данных
+    public static final String USER_NAME = "postgres";
+    public static final String DATABASE_PASS = "postgres";
 
     public static void main(String[] args) {
 
-        // проверка возможности подключения
         checkDriver();
         checkDB();
         System.out.println("Подключение к базе данных | " + DATABASE_URL + "\n");
 
-        // попытка открыть соединение с базой данных, которое java-закроет перед выходом из try-with-resources
         try (Connection connection = DriverManager.getConnection(DATABASE_URL, USER_NAME, DATABASE_PASS)) {
 
             System.out.println("student_id |   ФИО  |  birthday | speciality | group_number");
@@ -54,7 +52,6 @@ public class JDBCRunner {
         }
     }
 
-    // region // Проверка окружения и доступа к базе данных
 
     public static void checkDriver () {
         try {
@@ -74,129 +71,110 @@ public class JDBCRunner {
         }
     }
 
-    // endregion
-
-    // region // SELECT-запросы без параметров в одной таблице
-
     private static void getStudents(Connection connection) throws SQLException{
-        // имена столбцов
+     
         String columnName0 = "student_id", columnName1 = "ФИО", columnName2 = "birthday", columnName3 = "speciality", columnName4 = "group_number";
-        // значения ячеек
         String param0 = null;
         String param1 = null;
         Date param2 = null;
         String param3 = null;
         int param4 = -1;
 
-        Statement statement = connection.createStatement();     // создаем оператор для простого запроса (без параметров)
-        ResultSet rs = statement.executeQuery("SELECT * FROM students;"); // выполняем запроса на поиск и получаем список ответов
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM students;");
 
-        while (rs.next()) {  // пока есть данные, продвигаться по ним
-            param2 = rs.getDate(columnName2); // значение ячейки, можно получить по имени; по умолчанию возвращается строка
+        while (rs.next()) {
+            param2 = rs.getDate(columnName2);
             param1 = rs.getString(columnName1);
             param3 = rs.getString(columnName3);
             param4 = rs.getInt(columnName4);
-            param0 = rs.getString(columnName0);    // если точно уверены в типе данных ячейки, можно его сразу преобразовать
+            param0 = rs.getString(columnName0);
             System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3 + " | " + param4);
         }
     }
 
     static void getGroups (Connection connection) throws SQLException {
-        // значения ячеек
         String param0 = null;
         int param1 = -1;
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM groups;");
 
-        Statement statement = connection.createStatement();                 // создаем оператор для простого запроса (без параметров)
-        ResultSet rs = statement.executeQuery("SELECT * FROM groups;");  // выполняем запроса на поиск и получаем список ответов
-
-        while (rs.next()) {  // пока есть данные
-            param0 = rs.getString(1); // значение ячейки, можно также получить по порядковому номеру (начиная с 1)
+        while (rs.next()) {
+            param0 = rs.getString(1);
             param1 = rs.getInt(2);
             System.out.println(param0 + " | " + param1);
         }
     }
 
     private static void getTeachers(Connection connection) throws SQLException{
-        // имена столбцов
         String columnName0 = "teacher_id", columnName1 = "ФИО", columnName2 = "birthday", columnName3 = "speciality";
-        // значения ячеек
         String param0 = null;
         String param1 = null;
         Date param2 = null;
         String param3 = null;
 
-        Statement statement = connection.createStatement();     // создаем оператор для простого запроса (без параметров)
-        ResultSet rs = statement.executeQuery("SELECT * FROM teachers;"); // выполняем запроса на поиск и получаем список ответов
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM teachers;");
 
-        while (rs.next()) {  // пока есть данные, продвигаться по ним
-            param2 = rs.getDate(columnName2); // значение ячейки, можно получить по имени; по умолчанию возвращается строка
+        while (rs.next()) {
+            param2 = rs.getDate(columnName2);
             param1 = rs.getString(columnName1);
             param3 = rs.getString(columnName3);
-            param0 = rs.getString(columnName0);    // если точно уверены в типе данных ячейки, можно его сразу преобразовать
+            param0 = rs.getString(columnName0);
             System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3);
         }
     }
 
     static void getClasses (Connection connection) throws SQLException {
-        // значения ячеек
         String param0 = null;
         int param1 = -1;
 
-        Statement statement = connection.createStatement();                 // создаем оператор для простого запроса (без параметров)
-        ResultSet rs = statement.executeQuery("SELECT * FROM classes;");  // выполняем запроса на поиск и получаем список ответов
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM classes;");
 
-        while (rs.next()) {  // пока есть данные
-            param0 = rs.getString(1); // значение ячейки, можно также получить по порядковому номеру (начиная с 1)
+        while (rs.next()) {
+            param0 = rs.getString(1);
             param1 = rs.getInt(2);
             System.out.println(param0 + " | " + param1);
         }
     }
 
     private static void getSchedule_id(Connection connection) throws SQLException{
-        // имена столбцов
         String columnName0 = "group_id", columnName1 = "teacher_id", columnName2 = "class_id";
-        // значения ячеек
         String param0 = null;
         String param1 = null;
         String param2 = null;
 
-        Statement statement = connection.createStatement();     // создаем оператор для простого запроса (без параметров)
-        ResultSet rs = statement.executeQuery("SELECT * FROM schedule_id;"); // выполняем запроса на поиск и получаем список ответов
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM schedule_id;");
 
-        while (rs.next()) {  // пока есть данные, продвигаться по ним
-            param2 = rs.getString(columnName2); // значение ячейки, можно получить по имени; по умолчанию возвращается строка
+        while (rs.next()) {
+            param2 = rs.getString(columnName2);
             param1 = rs.getString(columnName1);
-            param0 = rs.getString(columnName0);    // если точно уверены в типе данных ячейки, можно его сразу преобразовать
+            param0 = rs.getString(columnName0);
             System.out.println(param0 + " | " + param1 + " | " + param2);
         }
     }
 
     private static void getSchedule(Connection connection) throws SQLException{
-        // имена столбцов
         String columnName0 = "group_number", columnName1 = "ФИО", columnName2 = "class_number";
-        // значения ячеек
         String param0 = null;
         String param1 = null;
         String param2 = null;
 
-        Statement statement = connection.createStatement();     // создаем оператор для простого запроса (без параметров)
-        ResultSet rs = statement.executeQuery("SELECT * FROM schedule;"); // выполняем запроса на поиск и получаем список ответов
+        Statement statement = connection.createStatement();
+        ResultSet rs = statement.executeQuery("SELECT * FROM schedule;");
 
-        while (rs.next()) {  // пока есть данные, продвигаться по ним
-            param2 = rs.getString(columnName2); // значение ячейки, можно получить по имени; по умолчанию возвращается строка
+        while (rs.next()) {
+            param2 = rs.getString(columnName2);
             param1 = rs.getString(columnName1);
-            param0 = rs.getString(columnName0);    // если точно уверены в типе данных ячейки, можно его сразу преобразовать
+            param0 = rs.getString(columnName0);
             System.out.println(param0 + " | " + param1 + " | " + param2);
         }
     }
 
-    // endregion
-
-    // region // CUD-запросы на добавление, изменение и удаление записей
-
     private static void addStudent (Connection connection, String student_id, String full_name, Date birthday, String speciality, int group_number)  throws SQLException {
         if (student_id == null || student_id.isBlank() || full_name == null || full_name.isBlank() || group_number <= 0) return;
-
         PreparedStatement checkStatement = connection.prepareStatement("SELECT 1 FROM students WHERE student_id = ?");
         checkStatement.setString(1, student_id);
         ResultSet checkResult = checkStatement.executeQuery();
@@ -206,16 +184,16 @@ public class JDBCRunner {
         }
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO students(student_id, ФИО, birthday, speciality, group_number) VALUES (?, ?, ?, ?, ?) returning student_id;", Statement.RETURN_GENERATED_KEYS);    // создаем оператор шаблонного-запроса с "включаемыми" параметрами - ?
+                "INSERT INTO students(student_id, ФИО, birthday, speciality, group_number) VALUES (?, ?, ?, ?, ?) returning student_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, student_id);
         statement.setString(2, full_name);
         statement.setDate(3, birthday);
         statement.setString(4, speciality);
         statement.setInt(5, group_number);
 
-        int count = statement.executeUpdate();  // выполняем запрос на коррекцию и возвращаем количество измененных строк
-        ResultSet rs = statement.getGeneratedKeys(); // прочитать запрошенные данные от БД
-        if (rs.next()) { // прокрутить к первой записи, если они есть
+        int count = statement.executeUpdate();
+        ResultSet rs = statement.getGeneratedKeys();
+        if (rs.next()) {
             System.out.println("Идентификатор студента " + rs.getString(1));
         }
 
@@ -238,13 +216,13 @@ public class JDBCRunner {
         }
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO groups(group_id, group_number) VALUES (?, ?) returning group_id;", Statement.RETURN_GENERATED_KEYS);    // создаем оператор шаблонного-запроса с "включаемыми" параметрами - ?
+                "INSERT INTO groups(group_id, group_number) VALUES (?, ?) returning group_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, group_id);
         statement.setInt(2, group_number);
 
-        int count = statement.executeUpdate();  // выполняем запрос на коррекцию и возвращаем количество измененных строк
-        ResultSet rs = statement.getGeneratedKeys(); // прочитать запрошенные данные от БД
-        if (rs.next()) { // прокрутить к первой записи, если они есть
+        int count = statement.executeUpdate();
+        ResultSet rs = statement.getGeneratedKeys();
+        if (rs.next()) {
             System.out.println("Идентификатор группы " + rs.getString(1));
         }
 
@@ -267,15 +245,15 @@ public class JDBCRunner {
         }
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO teachers(teacher_id, ФИО, birthday, speciality) VALUES (?, ?, ?, ?) returning teacher_id;", Statement.RETURN_GENERATED_KEYS);    // создаем оператор шаблонного-запроса с "включаемыми" параметрами - ?
+                "INSERT INTO teachers(teacher_id, ФИО, birthday, speciality) VALUES (?, ?, ?, ?) returning teacher_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, teacher_id);
         statement.setString(2, full_name);
         statement.setDate(3, birthday);
         statement.setString(4, speciality);
 
-        int count = statement.executeUpdate();  // выполняем запрос на коррекцию и возвращаем количество измененных строк
-        ResultSet rs = statement.getGeneratedKeys(); // прочитать запрошенные данные от БД
-        if (rs.next()) { // прокрутить к первой записи, если они есть
+        int count = statement.executeUpdate();
+        ResultSet rs = statement.getGeneratedKeys();
+        if (rs.next()) {
             System.out.println("Идентификатор преподавателя " + rs.getString(1));
         }
 
@@ -298,13 +276,13 @@ public class JDBCRunner {
         }
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO classes(class_id, class_number) VALUES (?, ?) returning class_id;", Statement.RETURN_GENERATED_KEYS);    // создаем оператор шаблонного-запроса с "включаемыми" параметрами - ?
+                "INSERT INTO classes(class_id, class_number) VALUES (?, ?) returning class_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, class_id);
         statement.setInt(2, class_number);
 
-        int count = statement.executeUpdate();  // выполняем запрос на коррекцию и возвращаем количество измененных строк
-        ResultSet rs = statement.getGeneratedKeys(); // прочитать запрошенные данные от БД
-        if (rs.next()) { // прокрутить к первой записи, если они есть
+        int count = statement.executeUpdate();
+        ResultSet rs = statement.getGeneratedKeys();
+        if (rs.next()) {
             System.out.println("Идентификатор аудитории " + rs.getString(1));
         }
 
@@ -321,7 +299,7 @@ public class JDBCRunner {
         PreparedStatement statement = connection.prepareStatement("DELETE from students WHERE student_id=?;");
         statement.setString(1, student_id);
 
-        int count = statement.executeUpdate(); // выполняем запрос на удаление и возвращаем количество измененных строк
+        int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " student");
         System.out.println();
         System.out.println("student_id |   ФИО  |  birthday | speciality | group_number");
@@ -334,7 +312,7 @@ public class JDBCRunner {
         PreparedStatement statement = connection.prepareStatement("DELETE from groups WHERE group_id=?;");
         statement.setString(1, group_id);
 
-        int count = statement.executeUpdate(); // выполняем запрос на удаление и возвращаем количество измененных строк
+        int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " group");
         System.out.println();
         System.out.println(" group_id  | number");
@@ -347,7 +325,7 @@ public class JDBCRunner {
         PreparedStatement statement = connection.prepareStatement("DELETE from teachers WHERE teacher_id=?;");
         statement.setString(1, teacher_id);
 
-        int count = statement.executeUpdate(); // выполняем запрос на удаление и возвращаем количество измененных строк
+        int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " teacher");
         System.out.println();
         System.out.println("teacher_id |    ФИО    |  birthday  | speciality");
@@ -360,11 +338,10 @@ public class JDBCRunner {
         PreparedStatement statement = connection.prepareStatement("DELETE from classes WHERE class_id=?;");
         statement.setString(1, class_id);
 
-        int count = statement.executeUpdate(); // выполняем запрос на удаление и возвращаем количество измененных строк
+        int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " class");
         System.out.println();
         System.out.println(" class_id  | number");
         getClasses(connection);
     }
-    // endregion
 }
