@@ -45,7 +45,7 @@ public class JDBCRunner {
             System.out.println("student_id | teacher_id | class_id" + "\n" + "------------------------------------"); getSchedule_id(connection); System.out.println();
             System.out.println(" ID | ФИО преп. | №" + "\n" + "----------------------"); getSchedule(connection); System.out.println();
 
-            System.out.println("group_id | teacher_id");
+            System.out.println("ФИО | Группа | ФИО_преподавателя | Аудитория");
             getScheduleByGroupAndTeacher(connection, "GI-0000003", "TI-0000002"); System.out.println();
 
         } catch (SQLException e) {
