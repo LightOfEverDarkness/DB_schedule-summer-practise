@@ -45,6 +45,9 @@ public class JDBCRunner {
             System.out.println("student_id | teacher_id | class_id" + "\n" + "------------------------------------"); getSchedule_id(connection); System.out.println();
             System.out.println(" ID | ФИО преп. | №" + "\n" + "----------------------"); getSchedule(connection); System.out.println();
 
+            System.out.println("group_id | teacher_id");
+            getScheduleByGroupAndTeacher(connection, "GI-0000003", "TI-0000002"); System.out.println();
+
         } catch (SQLException e) {
             if (e.getSQLState().startsWith("23")){
                 System.out.println("Произошло дублирование данных");
@@ -107,7 +110,7 @@ public class JDBCRunner {
     }
 
     private static void getTeachers(Connection connection) throws SQLException{
-        String columnName0 = "teacher_id", columnName1 = "ФИО", columnName2 = "birthday", columnName3 = "speciality";
+        String columnName0 = "teacher_id", columnName1 = "ФИО_преподавателя", columnName2 = "birthday", columnName3 = "speciality";
         String param0 = null;
         String param1 = null;
         Date param2 = null;
@@ -157,7 +160,7 @@ public class JDBCRunner {
     }
 
     private static void getSchedule(Connection connection) throws SQLException{
-        String columnName0 = "group_number", columnName1 = "ФИО", columnName2 = "class_number";
+        String columnName0 = "group_number", columnName1 = "ФИО_преподавателя", columnName2 = "class_number";
         String param0 = null;
         String param1 = null;
         String param2 = null;
@@ -172,6 +175,47 @@ public class JDBCRunner {
             System.out.println(param0 + " | " + param1 + " | " + param2);
         }
     }
+
+    private static void getScheduleByGroupAndTeacher(Connection connection, String group_id, String teacher_id) throws SQLException {
+        String columnName0 = "ФИО", columnName1 = "group_number", columnName2 = "ФИО_преподавателя", columnName3 = "class_number";
+        String param0 = null;
+        int param1 = -1;
+        String param2 = null;
+        int param3 = -1;
+
+        PreparedStatement statement = connection.prepareStatement(
+                "SELECT DISTINCT " +
+                        "    s.ФИО, " +
+                        "    g.group_number, " +
+                        "    t.ФИО_преподавателя, " +
+                        "    c.class_number " +
+                        "FROM " +
+                        "    students s " +
+                        "JOIN " +
+                        "    groups g ON s.group_number = g.group_number " +
+                        "JOIN " +
+                        "    schedule_id sch ON g.group_id = sch.group_id " +
+                        "JOIN " +
+                        "    teachers t ON sch.teacher_id = t.teacher_id " +
+                        "JOIN " +
+                        "    classes c ON sch.class_id = c.class_id " +
+                        "WHERE " +
+                        "    g.group_id = ? AND t.teacher_id = ?");
+        statement.setString(1, group_id);
+        statement.setString(2, teacher_id);
+
+        ResultSet rs = statement.executeQuery();
+
+        System.out.println("ФИО | Группа | ФИО_преподавателя | Аудитория");
+        while (rs.next()) {
+            param0 = rs.getString(columnName0);
+            param1 = rs.getInt(columnName1);
+            param2 = rs.getString(columnName2);
+            param3 = rs.getInt(columnName3);
+            System.out.println(param0 + " | " + param1 + " | " + param2 + " | " + param3);
+        }
+    }
+
 
     private static void addStudent (Connection connection, String student_id, String full_name, Date birthday, String speciality, int group_number)  throws SQLException {
         if (student_id == null || student_id.isBlank() || full_name == null || full_name.isBlank() || group_number <= 0) return;
@@ -245,7 +289,7 @@ public class JDBCRunner {
         }
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO teachers(teacher_id, ФИО, birthday, speciality) VALUES (?, ?, ?, ?) returning teacher_id;", Statement.RETURN_GENERATED_KEYS);
+                "INSERT INTO teachers(teacher_id, ФИО_преподавателя, birthday, speciality) VALUES (?, ?, ?, ?) returning teacher_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, teacher_id);
         statement.setString(2, full_name);
         statement.setDate(3, birthday);
