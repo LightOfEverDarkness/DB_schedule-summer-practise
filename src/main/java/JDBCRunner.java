@@ -29,6 +29,9 @@ public class JDBCRunner {
             System.out.println(" class_id  | number");
             getClasses(connection); System.out.println();
 
+            insertIntoScheduleId(connection); System.out.println();
+            insertIntoSchedule(connection); System.out.println();
+
             System.out.println("student_id | teacher_id | class_id" + "\n" + "------------------------------------"); getSchedule_id(connection); System.out.println();
             System.out.println(" ID | ФИО преп. | №" + "\n" + "----------------------"); getSchedule(connection); System.out.println();
 
@@ -74,17 +77,14 @@ public class JDBCRunner {
     }
 
     private static void getStudents(Connection connection) throws SQLException{
-     
         String columnName0 = "student_id", columnName1 = "ФИО", columnName2 = "birthday", columnName3 = "speciality", columnName4 = "group_number";
         String param0 = null;
         String param1 = null;
         Date param2 = null;
         String param3 = null;
         int param4 = -1;
-
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM students;");
-
         while (rs.next()) {
             param2 = rs.getDate(columnName2);
             param1 = rs.getString(columnName1);
@@ -100,7 +100,6 @@ public class JDBCRunner {
         int param1 = -1;
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM groups;");
-
         while (rs.next()) {
             param0 = rs.getString(1);
             param1 = rs.getInt(2);
@@ -114,10 +113,8 @@ public class JDBCRunner {
         String param1 = null;
         Date param2 = null;
         String param3 = null;
-
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM teachers;");
-
         while (rs.next()) {
             param2 = rs.getDate(columnName2);
             param1 = rs.getString(columnName1);
@@ -130,10 +127,8 @@ public class JDBCRunner {
     static void getClasses (Connection connection) throws SQLException {
         String param0 = null;
         int param1 = -1;
-
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM classes;");
-
         while (rs.next()) {
             param0 = rs.getString(1);
             param1 = rs.getInt(2);
@@ -146,10 +141,8 @@ public class JDBCRunner {
         String param0 = null;
         String param1 = null;
         String param2 = null;
-
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM schedule_id;");
-
         while (rs.next()) {
             param2 = rs.getString(columnName2);
             param1 = rs.getString(columnName1);
@@ -163,10 +156,8 @@ public class JDBCRunner {
         String param0 = null;
         String param1 = null;
         String param2 = null;
-
         Statement statement = connection.createStatement();
         ResultSet rs = statement.executeQuery("SELECT * FROM schedule;");
-
         while (rs.next()) {
             param2 = rs.getString(columnName2);
             param1 = rs.getString(columnName1);
@@ -175,13 +166,42 @@ public class JDBCRunner {
         }
     }
 
+    public static void insertIntoScheduleId(Connection connection) {
+        String sql = "INSERT INTO schedule_id (group_id, teacher_id, class_id) " +
+                "SELECT gi.group_id, ti.teacher_id, ci.class_id " +
+                "FROM groups gi " +
+                "CROSS JOIN teachers ti " +
+                "CROSS JOIN classes ci";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error inserting into schedule_id: " + e.getMessage());
+        }
+    }
+
+    public static void insertIntoSchedule(Connection connection) {
+        String sql = "INSERT INTO schedule (group_number, ФИО, class_number) " +
+                "SELECT gi.group_number, ti.ФИО, ci.class_number " +
+                "FROM schedule_id sid " +
+                "JOIN groups gi ON sid.group_id = gi.group_id " +
+                "JOIN teachers ti ON sid.teacher_id = ti.teacher_id " +
+                "JOIN classes ci ON sid.class_id = ci.class_id";
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error inserting into schedule: " + e.getMessage());
+        }
+    }
+
+
     private static void getScheduleByGroupAndTeacher(Connection connection, String group_id, String teacher_id) throws SQLException {
         String columnName0 = "ФИО", columnName1 = "group_number", columnName2 = "ФИО_преподавателя", columnName3 = "class_number";
         String param0 = null;
         int param1 = -1;
         String param2 = null;
         int param3 = -1;
-
         PreparedStatement statement = connection.prepareStatement(
                 "SELECT DISTINCT " +
                         "    s.ФИО, " +
@@ -202,9 +222,7 @@ public class JDBCRunner {
                         "    g.group_id = ? AND t.teacher_id = ?");
         statement.setString(1, group_id);
         statement.setString(2, teacher_id);
-
         ResultSet rs = statement.executeQuery();
-
         System.out.println("ФИО | Группа | ФИО_преподавателя | Аудитория");
         while (rs.next()) {
             param0 = rs.getString(columnName0);
@@ -225,7 +243,6 @@ public class JDBCRunner {
             System.out.println("Студент с идентификатором " + student_id + " уже существует. Не удалось добавить нового студента.");
             return;
         }
-
         PreparedStatement statement = connection.prepareStatement(
                 "INSERT INTO students(student_id, ФИО, birthday, speciality, group_number) VALUES (?, ?, ?, ?, ?) returning student_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, student_id);
@@ -233,13 +250,11 @@ public class JDBCRunner {
         statement.setDate(3, birthday);
         statement.setString(4, speciality);
         statement.setInt(5, group_number);
-
         int count = statement.executeUpdate();
         ResultSet rs = statement.getGeneratedKeys();
         if (rs.next()) {
             System.out.println("Идентификатор студента " + rs.getString(1));
         }
-
         System.out.println();
         System.out.println("INSERTed " + count + " student");
         System.out.println();
@@ -249,7 +264,6 @@ public class JDBCRunner {
 
     private static void addGroup (Connection connection, String group_id, int group_number)  throws SQLException {
         if (group_id == null || group_id.isBlank() || group_number <= 0) return;
-
         PreparedStatement checkStatement = connection.prepareStatement("SELECT 1 FROM groups WHERE group_id = ?");
         checkStatement.setString(1, group_id);
         ResultSet checkResult = checkStatement.executeQuery();
@@ -257,7 +271,6 @@ public class JDBCRunner {
             System.out.println("Группа с идентификатором " + group_id + " уже существует. Не удалось добавить новую группу.");
             return;
         }
-
         PreparedStatement statement = connection.prepareStatement(
                 "INSERT INTO groups(group_id, group_number) VALUES (?, ?) returning group_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, group_id);
@@ -268,7 +281,6 @@ public class JDBCRunner {
         if (rs.next()) {
             System.out.println("Идентификатор группы " + rs.getString(1));
         }
-
         System.out.println();
         System.out.println("INSERTed " + count + " group");
         System.out.println();
@@ -278,7 +290,6 @@ public class JDBCRunner {
 
     private static void addTeacher (Connection connection, String teacher_id, String full_name, Date birthday, String speciality)  throws SQLException {
         if (teacher_id == null || teacher_id.isBlank() || full_name == null || full_name.isBlank()) return;
-
         PreparedStatement checkStatement = connection.prepareStatement("SELECT 1 FROM teachers WHERE teacher_id = ?");
         checkStatement.setString(1, teacher_id);
         ResultSet checkResult = checkStatement.executeQuery();
@@ -286,7 +297,6 @@ public class JDBCRunner {
             System.out.println("Преподаватель с идентификатором " + teacher_id + " уже существует. Не удалось добавить нового преподавателя.");
             return;
         }
-
         PreparedStatement statement = connection.prepareStatement(
                 "INSERT INTO teachers(teacher_id, ФИО_преподавателя, birthday, speciality) VALUES (?, ?, ?, ?) returning teacher_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, teacher_id);
@@ -299,7 +309,6 @@ public class JDBCRunner {
         if (rs.next()) {
             System.out.println("Идентификатор преподавателя " + rs.getString(1));
         }
-
         System.out.println();
         System.out.println("INSERTed " + count + " teacher");
         System.out.println();
@@ -309,7 +318,6 @@ public class JDBCRunner {
 
     private static void addClass (Connection connection, String class_id, int class_number)  throws SQLException {
         if (class_id == null || class_id.isBlank() || class_number <= 0) return;
-
         PreparedStatement checkStatement = connection.prepareStatement("SELECT 1 FROM classes WHERE class_id = ?");
         checkStatement.setString(1, class_id);
         ResultSet checkResult = checkStatement.executeQuery();
@@ -317,7 +325,6 @@ public class JDBCRunner {
             System.out.println("Аудитория с идентификатором " + class_id + " уже существует. Не удалось добавить новую аудиторию.");
             return;
         }
-
         PreparedStatement statement = connection.prepareStatement(
                 "INSERT INTO classes(class_id, class_number) VALUES (?, ?) returning class_id;", Statement.RETURN_GENERATED_KEYS);
         statement.setString(1, class_id);
@@ -328,7 +335,6 @@ public class JDBCRunner {
         if (rs.next()) {
             System.out.println("Идентификатор аудитории " + rs.getString(1));
         }
-
         System.out.println();
         System.out.println("INSERTed " + count + " class");
         System.out.println();
@@ -338,10 +344,8 @@ public class JDBCRunner {
 
     private static void removeStudent(Connection connection, String student_id) throws SQLException {
         if (student_id == null || student_id.isBlank()) return;
-
         PreparedStatement statement = connection.prepareStatement("DELETE from students WHERE student_id=?;");
         statement.setString(1, student_id);
-
         int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " student");
         System.out.println();
@@ -351,10 +355,8 @@ public class JDBCRunner {
 
     private static void removeGroup(Connection connection, String group_id) throws SQLException {
         if (group_id == null || group_id.isBlank()) return;
-
         PreparedStatement statement = connection.prepareStatement("DELETE from groups WHERE group_id=?;");
         statement.setString(1, group_id);
-
         int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " group");
         System.out.println();
@@ -364,10 +366,8 @@ public class JDBCRunner {
 
     private static void removeTeacher(Connection connection, String teacher_id) throws SQLException {
         if (teacher_id == null || teacher_id.isBlank()) return;
-
         PreparedStatement statement = connection.prepareStatement("DELETE from teachers WHERE teacher_id=?;");
         statement.setString(1, teacher_id);
-
         int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " teacher");
         System.out.println();
@@ -377,10 +377,8 @@ public class JDBCRunner {
 
     private static void removeClass(Connection connection, String class_id) throws SQLException {
         if (class_id == null || class_id.isBlank()) return;
-
         PreparedStatement statement = connection.prepareStatement("DELETE from classes WHERE class_id=?;");
         statement.setString(1, class_id);
-
         int count = statement.executeUpdate();
         System.out.println("DELETEd " + count + " class");
         System.out.println();
