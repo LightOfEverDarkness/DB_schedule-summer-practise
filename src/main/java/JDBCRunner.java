@@ -168,33 +168,34 @@ public class JDBCRunner {
 
     public static void insertIntoScheduleId(Connection connection) {
         String sql = "INSERT INTO schedule_id (group_id, teacher_id, class_id) " +
-                "SELECT gi.group_id, ti.teacher_id, ci.class_id " +
-                "FROM groups gi " +
-                "CROSS JOIN teachers ti " +
-                "CROSS JOIN classes ci";
+                     "SELECT gi.group_id, ti.teacher_id, ci.class_id " +
+                     "FROM groups gi " +
+                     "CROSS JOIN teachers ti " +
+                     "CROSS JOIN classes ci";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.executeUpdate();
+            getSchedule_id(connection);
         } catch (SQLException e) {
             System.err.println("Error inserting into schedule_id: " + e.getMessage());
         }
     }
 
     public static void insertIntoSchedule(Connection connection) {
-        String sql = "INSERT INTO schedule (group_number, ФИО, class_number) " +
-                "SELECT gi.group_number, ti.ФИО, ci.class_number " +
-                "FROM schedule_id sid " +
-                "JOIN groups gi ON sid.group_id = gi.group_id " +
-                "JOIN teachers ti ON sid.teacher_id = ti.teacher_id " +
-                "JOIN classes ci ON sid.class_id = ci.class_id";
+        String sql = "INSERT INTO schedule (group_number, ФИО_преподавателя, class_number) " +
+                     "SELECT gi.group_number, ti.ФИО_преподавателя, ci.class_number " +
+                     "FROM schedule_id sid " +
+                     "JOIN groups gi ON sid.group_id = gi.group_id " +
+                     "JOIN teachers ti ON sid.teacher_id = ti.teacher_id " +
+                     "JOIN classes ci ON sid.class_id = ci.class_id";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.executeUpdate();
+            getSchedule(connection);
         } catch (SQLException e) {
             System.err.println("Error inserting into schedule: " + e.getMessage());
         }
     }
-
 
     private static void getScheduleByGroupAndTeacher(Connection connection, String group_id, String teacher_id) throws SQLException {
         String columnName0 = "ФИО", columnName1 = "group_number", columnName2 = "ФИО_преподавателя", columnName3 = "class_number";
